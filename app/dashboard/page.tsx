@@ -3,27 +3,34 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart2, BookOpen, Music, Award, ChevronRight, Crown, Flame, Sparkles, LogOut } from "lucide-react";
+import { BookOpen, Award, Flame, Sparkles, LogOut, Zap, Trophy } from "lucide-react";
 import { getSession, clearSession, type AuthUser } from "@/lib/auth";
-
-const stats = [
-  { label: "Bài đã học", value: "0", icon: BookOpen },
-  { label: "Streak", value: "0", icon: Flame },
-  { label: "Nhạc cụ", value: "0", icon: Music },
-  { label: "Thành tích", value: "0", icon: Award },
-];
+import { fetchProgress, fetchAchievements, fetchActivity, type UserProgress, type AchievementsResponse, type ActivityDay } from "@/lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [progress, setProgress] = useState<UserProgress | null>(null);
+  const [achievements, setAchievements] = useState<AchievementsResponse | null>(null);
+  const [activity, setActivity] = useState<ActivityDay[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const session = getSession();
     if (!session) {
       router.replace("/login");
-    } else {
-      setUser(session);
+      return;
     }
+    setUser(session);
+
+    Promise.all([fetchProgress(), fetchAchievements(), fetchActivity()])
+      .then(([prog, ach, act]) => {
+        setProgress(prog);
+        setAchievements(ach);
+        setActivity(act);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, [router]);
 
   const handleLogout = () => {
@@ -32,6 +39,14 @@ export default function DashboardPage() {
   };
 
   if (!user) return null;
+
+  const maxXp = Math.max(...activity.map((d) => d.xpEarned), 1);
+
+  const stats = [
+    { label: "Bài đã học", value: progress?.totalLessonsCompleted ?? 0, icon: BookOpen },
+    { label: "Streak", value: progress?.currentStreak ?? 0, icon: Flame },
+    { label: "Thành tích", value: achievements?.unlocked.length ?? 0, icon: Award },
+  ];
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -46,6 +61,10 @@ export default function DashboardPage() {
             <span className="text-[#0a1f14] font-bold text-lg">Folkify</span>
           </Link>
           <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-zinc-600">
+              <Zap className="w-4 h-4 text-[#52b788]" />
+              <span className="font-semibold text-[#0a1f14]">{progress?.totalXp ?? 0} XP</span>
+            </div>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#52b788] to-[#2d6a4f] flex items-center justify-center text-white text-sm font-semibold">
               {user.name.charAt(0).toUpperCase()}
             </div>
@@ -67,149 +86,192 @@ export default function DashboardPage() {
             Xin chào, {user.name}
             <Sparkles className="w-5 h-5 text-[#52b788]" strokeWidth={1.5} />
           </h1>
-          <p className="text-zinc-500 text-sm mt-1">Chào mừng bạn đến với Folkify!</p>
+          <p className="text-zinc-500 text-sm mt-1">
+            {progress?.currentStreak
+              ? `Streak ${progress.currentStreak} ngày — tiếp tục học để duy trì nhé!`
+              : "Chào mừng bạn đến với Folkify!"}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {stats.map((s) => (
-                <div key={s.label} className="bg-white rounded-2xl p-4 border border-zinc-100 shadow-sm">
-                  <s.icon className="w-5 h-5 text-[#52b788] mb-2" strokeWidth={1.5} />
-                  <p className="text-2xl font-bold text-[#0a1f14]">{s.value}</p>
-                  <p className="text-zinc-400 text-xs mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Start learning */}
-            <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
-              <div className="px-6 pt-6 pb-4 border-b border-zinc-50">
-                <h2 className="text-base font-semibold text-[#0a1f14]">Bắt đầu học ngay</h2>
-                <p className="text-zinc-400 text-sm mt-0.5">Chọn nhạc cụ bạn muốn học</p>
-              </div>
-              <div className="divide-y divide-zinc-50">
-                {[
-                  { name: "Đàn Tranh", type: "Dây gảy", level: "Cơ bản", lessons: 24 },
-                  { name: "Sáo Trúc", type: "Hơi", level: "Cơ bản", lessons: 18 },
-                  { name: "Đàn Bầu", type: "Dây", level: "Trung cấp", lessons: 20 },
-                ].map((inst) => (
-                  <div key={inst.name} className="flex items-center justify-between px-6 py-4 hover:bg-zinc-50 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#52b788]/10 flex items-center justify-center">
-                        <Music className="w-5 h-5 text-[#52b788]" strokeWidth={1.5} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-[#0a1f14] text-sm">{inst.name}</p>
-                        <p className="text-zinc-400 text-xs">{inst.type} · {inst.lessons} bài học</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs bg-[#52b788]/10 text-[#2d6a4f] px-2.5 py-1 rounded-full font-medium">
-                        {inst.level}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-zinc-300" />
-                    </div>
+        {loading ? (
+          <div className="flex items-center justify-center h-48 text-zinc-400 text-sm">Đang tải...</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main content */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4">
+                {stats.map((s) => (
+                  <div key={s.label} className="bg-white rounded-2xl p-4 border border-zinc-100 shadow-sm">
+                    <s.icon className="w-5 h-5 text-[#52b788] mb-2" strokeWidth={1.5} />
+                    <p className="text-2xl font-bold text-[#0a1f14]">{s.value}</p>
+                    <p className="text-zinc-400 text-xs mt-0.5">{s.label}</p>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {/* Activity chart placeholder */}
-            <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-semibold text-[#0a1f14]">Hoạt động</h2>
-                <BarChart2 className="w-4 h-4 text-zinc-300" />
-              </div>
-              <div className="flex items-end gap-1.5 h-20">
-                {[0,0,0,0,0,0,0].map((_, i) => (
-                  <div key={i} className="flex-1 bg-zinc-100 rounded-t-md" style={{ height: "8px" }} />
-                ))}
-              </div>
-              <div className="flex justify-between mt-2">
-                {["T2","T3","T4","T5","T6","T7","CN"].map((d) => (
-                  <span key={d} className="text-[10px] flex-1 text-center text-zinc-300">{d}</span>
-                ))}
-              </div>
-              <p className="text-zinc-400 text-xs text-center mt-4">Chưa có hoạt động nào. Bắt đầu học để xem thống kê!</p>
-            </div>
-          </div>
-
-          {/* Sidebar — Plan */}
-          <div className="space-y-4">
-            <p className="text-xs font-medium text-zinc-400 uppercase tracking-widest px-1">Gói của bạn</p>
-
-            {/* Free plan — current */}
-            <div className="bg-white rounded-2xl border-2 border-[#52b788]/40 shadow-sm overflow-hidden">
-              <div className="px-5 pt-5 pb-4 flex items-center justify-between">
-                <div>
-                  <p className="text-[#0a1f14] font-bold text-lg">Free</p>
-                  <p className="text-zinc-400 text-xs mt-0.5">Miễn phí mãi mãi</p>
+              {/* Instrument progress */}
+              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+                <div className="px-6 pt-6 pb-4 border-b border-zinc-50">
+                  <h2 className="text-base font-semibold text-[#0a1f14]">Tiến độ nhạc cụ</h2>
                 </div>
-                <span className="bg-[#52b788]/10 text-[#2d6a4f] text-xs px-2.5 py-1 rounded-full font-semibold">Hiện tại</span>
-              </div>
-              <div className="px-5 pb-5 space-y-2.5 border-t border-zinc-50 pt-4">
-                {[
-                  { text: "10 bài học mỗi tháng", ok: true },
-                  { text: "Máy đếm nhịp cơ bản", ok: true },
-                  { text: "Tải bản nhạc offline", ok: false },
-                  { text: "AI Pitch chấm nhạc", ok: false },
-                  { text: "Hỗ trợ ưu tiên 24/7", ok: false },
-                ].map((item) => (
-                  <div key={item.text} className="flex items-center gap-2.5">
-                    <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 ${item.ok ? "bg-[#52b788]/15" : "bg-zinc-100"}`}>
-                      <span className={`text-[10px] ${item.ok ? "text-[#52b788]" : "text-zinc-300"}`}>
-                        {item.ok ? "✓" : "×"}
-                      </span>
-                    </div>
-                    <span className={`text-sm ${item.ok ? "text-zinc-700" : "text-zinc-300"}`}>{item.text}</span>
+                {progress?.instruments.length ? (
+                  <div className="divide-y divide-zinc-50">
+                    {progress.instruments.map((inst) => (
+                      <div key={inst.id} className="px-6 py-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{inst.emoji}</span>
+                            <span className="font-medium text-[#0a1f14] text-sm">{inst.name}</span>
+                          </div>
+                          <span className="text-xs text-zinc-400">
+                            {inst.completedLessons}/{inst.totalLessons} bài
+                          </span>
+                        </div>
+                        <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${inst.progressPercent}%`,
+                              background: inst.color ?? "linear-gradient(90deg, #52b788, #2d6a4f)",
+                            }}
+                          />
+                        </div>
+                        <p className="text-xs text-zinc-400 mt-1">{inst.progressPercent}%</p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Pro plan — upgrade */}
-            <div className="bg-gradient-to-br from-[#0a1f14] to-[#1a4a2e] rounded-2xl overflow-hidden">
-              <div className="px-5 pt-5 pb-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-bold text-lg flex items-center gap-1.5">
-                    <Crown className="w-4 h-4 text-[#95d5b2]" strokeWidth={1.5} />
-                    Pro
+                ) : (
+                  <p className="text-zinc-400 text-sm text-center py-8">
+                    Chưa học nhạc cụ nào. Bắt đầu ngay!
                   </p>
-                  <p className="text-[#95d5b2]/60 text-xs mt-0.5">99.000đ / tháng</p>
+                )}
+              </div>
+
+              {/* Activity chart */}
+              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base font-semibold text-[#0a1f14]">Hoạt động 7 ngày</h2>
+                  <span className="text-xs text-zinc-400">XP kiếm được</span>
                 </div>
-                <span className="bg-[#52b788]/20 text-[#95d5b2] text-xs px-2.5 py-1 rounded-full font-semibold">Đề xuất</span>
-              </div>
-              <div className="px-5 pb-4 space-y-2.5 border-t border-white/10 pt-4">
-                {[
-                  "Truy cập 200+ bài học",
-                  "Máy đếm nhịp nâng cao",
-                  "Tải bản nhạc offline",
-                  "AI Pitch chấm nhạc",
-                  "Hỗ trợ ưu tiên 24/7",
-                ].map((text) => (
-                  <div key={text} className="flex items-center gap-2.5">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 bg-[#52b788]/20">
-                      <span className="text-[10px] text-[#95d5b2]">✓</span>
+                <div className="flex items-end gap-1.5 h-24">
+                  {activity.map((day, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full flex items-end justify-center" style={{ height: "80px" }}>
+                        <div
+                          className={`w-full rounded-t-md transition-all ${day.today ? "bg-[#52b788]" : "bg-zinc-200"}`}
+                          style={{ height: `${Math.max((day.xpEarned / maxXp) * 80, day.xpEarned > 0 ? 6 : 4)}px` }}
+                        />
+                      </div>
                     </div>
-                    <span className="text-sm text-[#95d5b2]/80">{text}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="px-5 pb-5">
-                <Link
-                  href="/#pricing"
-                  className="flex items-center justify-center gap-2 w-full h-11 rounded-xl font-semibold text-[#0a1f14] text-sm transition-all hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg, #52b788, #95d5b2)" }}
-                >
-                  Nâng cấp lên Pro
-                </Link>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-2">
+                  {activity.map((day, i) => (
+                    <span key={i} className={`text-[10px] flex-1 text-center ${day.today ? "text-[#52b788] font-semibold" : "text-zinc-300"}`}>
+                      {day.dayLabel}
+                    </span>
+                  ))}
+                </div>
+                {activity.every((d) => d.xpEarned === 0) && (
+                  <p className="text-zinc-400 text-xs text-center mt-3">Chưa có hoạt động nào. Bắt đầu học để xem thống kê!</p>
+                )}
               </div>
             </div>
+
+            {/* Sidebar */}
+            <div className="space-y-4">
+              {/* Streak card */}
+              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <Flame className="w-5 h-5 text-orange-400" />
+                  <span className="font-semibold text-[#0a1f14]">Streak</span>
+                </div>
+                <p className="text-3xl font-bold text-[#0a1f14]">{progress?.currentStreak ?? 0} <span className="text-base font-normal text-zinc-400">ngày</span></p>
+                <p className="text-xs text-zinc-400 mt-1">Kỷ lục: {progress?.longestStreak ?? 0} ngày</p>
+              </div>
+
+              {/* Achievements */}
+              <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
+                <div className="px-5 pt-5 pb-3 border-b border-zinc-50 flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[#52b788]" />
+                  <h2 className="text-sm font-semibold text-[#0a1f14]">Thành tích</h2>
+                  {achievements?.unlocked.length ? (
+                    <span className="ml-auto text-xs bg-[#52b788]/10 text-[#2d6a4f] px-2 py-0.5 rounded-full font-medium">
+                      {achievements.unlocked.length}/{(achievements.unlocked.length + (achievements.locked?.length ?? 0))}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="p-4 space-y-2">
+                  {achievements?.unlocked.length ? (
+                    achievements.unlocked.slice(0, 4).map((ach) => (
+                      <div key={ach.id} className="flex items-center gap-3">
+                        <span className="text-xl">{ach.icon}</span>
+                        <div>
+                          <p className="text-sm font-medium text-[#0a1f14]">{ach.name}</p>
+                          <p className="text-xs text-zinc-400">{ach.description}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-zinc-400 text-xs text-center py-3">Chưa có thành tích nào</p>
+                  )}
+                  {achievements?.locked.slice(0, 2).map((ach) => (
+                    <div key={ach.id} className="flex items-center gap-3 opacity-40">
+                      <span className="text-xl grayscale">{ach.icon}</span>
+                      <div>
+                        <p className="text-sm font-medium text-zinc-500">{ach.name}</p>
+                        <p className="text-xs text-zinc-400">{ach.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Plan */}
+              {user.plan === "PRO" ? (
+                <div className="bg-gradient-to-br from-[#0a1f14] to-[#1a4a2e] rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Trophy className="w-4 h-4 text-[#95d5b2]" />
+                    <p className="text-white font-bold">Gói Pro</p>
+                    <span className="ml-auto text-xs bg-[#52b788]/20 text-[#95d5b2] px-2 py-0.5 rounded-full font-medium">Hiện tại</span>
+                  </div>
+                  <p className="text-[#95d5b2]/60 text-xs">Truy cập toàn bộ 200+ bài học</p>
+                </div>
+              ) : user.plan === "BASIC" ? (
+                <div className="bg-white rounded-2xl border-2 border-[#52b788]/40 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-[#0a1f14] font-bold">Gói Basic</p>
+                    <span className="ml-auto text-xs bg-[#52b788]/10 text-[#2d6a4f] px-2 py-0.5 rounded-full font-medium">Hiện tại</span>
+                  </div>
+                  <p className="text-zinc-400 text-xs mb-4">49.000đ / tháng</p>
+                  <Link
+                    href="/#pricing"
+                    className="flex items-center justify-center w-full h-10 rounded-xl font-semibold text-white text-sm"
+                    style={{ background: "linear-gradient(135deg, #52b788, #2d6a4f)" }}
+                  >
+                    Nâng cấp lên Pro
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-gradient-to-br from-[#0a1f14] to-[#1a4a2e] rounded-2xl overflow-hidden p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-white font-bold">Gói Free</p>
+                    <span className="ml-auto text-xs bg-white/10 text-white/50 px-2 py-0.5 rounded-full font-medium">Hiện tại</span>
+                  </div>
+                  <p className="text-[#95d5b2]/60 text-xs mb-4">Nâng cấp để mở khóa 200+ bài học</p>
+                  <Link
+                    href="/#pricing"
+                    className="flex items-center justify-center w-full h-10 rounded-xl font-semibold text-[#0a1f14] text-sm"
+                    style={{ background: "linear-gradient(135deg, #52b788, #95d5b2)" }}
+                  >
+                    Xem các gói
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

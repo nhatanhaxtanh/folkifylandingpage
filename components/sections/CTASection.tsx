@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Music } from "lucide-react";
 
 export default function CTASection() {
   const ref = useRef(null);
@@ -50,7 +51,7 @@ export default function CTASection() {
               render={<a href="#pricing" />}
               nativeButton={false}
             >
-              🎵 Dùng thử miễn phí 7 ngày
+              <Music className="w-5 h-5" /> Dùng thử miễn phí 7 ngày
             </Button>
             <a
               href="#"
