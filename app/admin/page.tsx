@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Users, Crown, Zap, UserCheck, TrendingUp, LogOut, Shield, ChevronDown, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { getSession, clearSession } from "@/lib/auth";
 import { fetchAdminStats, fetchAdminUsers, updateUserPlan, updateUserRole, deleteUser, type AdminStats, type AdminUser } from "@/lib/admin-api";
 
@@ -37,21 +38,27 @@ export default function AdminPage() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  const handlePlanChange = async (id: string, plan: string) => {
+  const handlePlanChange = async (id: string, plan: string, name: string) => {
     setUpdatingId(id);
     try {
       const updated = await updateUserPlan(id, plan);
       setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+      toast.success(`Đã đổi gói của ${name} sang ${PLAN_LABELS[plan] ?? plan}`);
+    } catch {
+      toast.error("Cập nhật gói thất bại");
     } finally {
       setUpdatingId(null);
     }
   };
 
-  const handleRoleChange = async (id: string, role: string) => {
+  const handleRoleChange = async (id: string, role: string, name: string) => {
     setUpdatingId(id);
     try {
       const updated = await updateUserRole(id, role);
       setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
+      toast.success(`Đã đổi role của ${name} sang ${role}`);
+    } catch {
+      toast.error("Cập nhật role thất bại");
     } finally {
       setUpdatingId(null);
     }
@@ -64,6 +71,9 @@ export default function AdminPage() {
       await deleteUser(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
       if (stats) setStats({ ...stats, totalUsers: stats.totalUsers - 1 });
+      toast.success(`Đã xóa tài khoản ${name}`);
+    } catch {
+      toast.error("Xóa tài khoản thất bại");
     } finally {
       setUpdatingId(null);
     }
@@ -189,7 +199,7 @@ export default function AdminPage() {
                             <select
                               value={user.plan}
                               disabled={updatingId === user.id}
-                              onChange={(e) => handlePlanChange(user.id, e.target.value)}
+                              onChange={(e) => handlePlanChange(user.id, e.target.value, user.name)}
                               className="absolute inset-0 opacity-0 cursor-pointer w-full"
                             >
                               <option value="FREE">Free</option>
@@ -207,7 +217,7 @@ export default function AdminPage() {
                             <select
                               value={user.role}
                               disabled={updatingId === user.id}
-                              onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                              onChange={(e) => handleRoleChange(user.id, e.target.value, user.name)}
                               className="absolute inset-0 opacity-0 cursor-pointer w-full"
                             >
                               <option value="USER">USER</option>
