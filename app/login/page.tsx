@@ -24,7 +24,7 @@ export default function LoginPage() {
     try {
       const tokens = await login(email, password);
       saveSession(tokens);
-      router.push("/dashboard");
+      router.push(tokens.user.role === "ADMIN" ? "/admin" : "/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Đăng nhập thất bại");
     } finally {
