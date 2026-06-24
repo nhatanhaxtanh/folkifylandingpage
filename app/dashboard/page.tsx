@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, Award, Flame, Sparkles, LogOut, Zap, Trophy, Star, Crown, Target, Music, Music2, Wind, Waves, Guitar, type LucideIcon } from "lucide-react";
+import { BookOpen, Award, Flame, Sparkles, LogOut, Zap, Trophy, Star, Crown, Target, Music, Music2, Wind, Waves, Guitar, Shield, type LucideIcon } from "lucide-react";
 
 const instrumentIcon: Record<string, LucideIcon> = {
   "dan-tranh": Music2,
@@ -86,6 +86,15 @@ export default function DashboardPage() {
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#52b788] to-[#2d6a4f] flex items-center justify-center text-white text-sm font-semibold">
               {user.name.charAt(0).toUpperCase()}
             </div>
+            {user.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-1.5 text-red-400 hover:text-red-300 text-sm font-medium transition-colors"
+              >
+                <Shield className="w-4 h-4" />
+                Admin
+              </Link>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 text-red-400 hover:text-red-600 text-sm transition-colors"

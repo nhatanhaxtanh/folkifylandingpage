@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Music, BookOpen, Award, LogOut, Shield, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Music, BookOpen, Award, LogOut, Shield, Menu, X, Music2, FileMusic } from "lucide-react";
 import { getSession, clearSession } from "@/lib/auth";
 
 const navItems = [
@@ -11,6 +11,8 @@ const navItems = [
   { label: "Người dùng", href: "/admin/users", icon: Users },
   { label: "Nhạc cụ", href: "/admin/instruments", icon: Music },
   { label: "Bài học", href: "/admin/lessons", icon: BookOpen },
+  { label: "Bài hát", href: "/admin/songs", icon: Music2 },
+  { label: "Sheet nhạc", href: "/admin/sheets", icon: FileMusic },
   { label: "Thành tích", href: "/admin/achievements", icon: Award },
 ];
 
@@ -36,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className={`
         fixed inset-y-0 left-0 z-40 w-60 bg-[#0a1f14] flex flex-col transition-transform duration-200
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:relative lg:translate-x-0 lg:flex
+        lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:flex
       `}>
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-5 h-16 border-b border-white/10">

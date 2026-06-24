@@ -17,6 +17,8 @@ async function adminRequest<T>(path: string, options?: RequestInit): Promise<T> 
   return json.result as T;
 }
 
+// ── Users ──────────────────────────────────────────────────────────────────
+
 export interface AdminStats {
   totalUsers: number;
   freeUsers: number;
@@ -52,3 +54,134 @@ export const updateUserRole = (id: string, role: string) =>
 
 export const deleteUser = (id: string) =>
   adminRequest<void>(`/api/admin/users/${id}`, { method: "DELETE" });
+
+// ── Instruments ────────────────────────────────────────────────────────────
+
+export interface InstrumentAdmin {
+  id: string;
+  slug: string;
+  name: string;
+  englishName: string;
+  region: string;
+  category: string;
+  emoji: string;
+  color: string;
+  imageUrl: string;
+  shortDesc: string;
+  description: string;
+  origin: string;
+  material: string;
+  soundRange: string;
+  difficulty: number;
+  popularity: number;
+  lessonCount: number;
+  facts: string[];
+}
+
+export const fetchAdminInstruments = () => adminRequest<InstrumentAdmin[]>("/api/admin/instruments");
+
+export const updateInstrument = (id: string, data: Partial<InstrumentAdmin>) =>
+  adminRequest<InstrumentAdmin>(`/api/admin/instruments/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+// ── Lessons ────────────────────────────────────────────────────────────────
+
+export interface LessonAdmin {
+  id: string;
+  instrumentId: string;
+  instrumentName: string;
+  slug: string;
+  title: string;
+  duration: string;
+  level: string;
+  description: string;
+  steps: string[];
+  tips: string[];
+  xp: number;
+  youtubeUrl: string;
+  orderIndex: number;
+}
+
+export const fetchAdminLessons = (instrumentId?: string) =>
+  adminRequest<LessonAdmin[]>(`/api/admin/lessons${instrumentId ? `?instrumentId=${instrumentId}` : ""}`);
+
+export const createLesson = (data: Omit<LessonAdmin, "id" | "instrumentName">) =>
+  adminRequest<LessonAdmin>("/api/admin/lessons", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateLesson = (id: string, data: Omit<LessonAdmin, "id" | "instrumentName">) =>
+  adminRequest<LessonAdmin>(`/api/admin/lessons/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const deleteLesson = (id: string) =>
+  adminRequest<void>(`/api/admin/lessons/${id}`, { method: "DELETE" });
+
+// ── Songs ──────────────────────────────────────────────────────────────────
+
+export interface SongAdmin {
+  id: string;
+  instrumentId: string;
+  instrumentName: string;
+  title: string;
+  artist: string;
+  duration: string;
+  orderIndex: number;
+}
+
+export const fetchAdminSongs = (instrumentId?: string) =>
+  adminRequest<SongAdmin[]>(`/api/admin/songs${instrumentId ? `?instrumentId=${instrumentId}` : ""}`);
+
+export const createSong = (data: Omit<SongAdmin, "id" | "instrumentName">) =>
+  adminRequest<SongAdmin>("/api/admin/songs", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateSong = (id: string, data: Omit<SongAdmin, "id" | "instrumentName">) =>
+  adminRequest<SongAdmin>(`/api/admin/songs/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const deleteSong = (id: string) =>
+  adminRequest<void>(`/api/admin/songs/${id}`, { method: "DELETE" });
+
+// ── Sheet Music ────────────────────────────────────────────────────────────
+
+export interface SheetMusicAdmin {
+  id: string;
+  title: string;
+  author: string;
+  genre: string;
+  difficulty: string;
+  pages: number;
+  isPremium: boolean;
+  fileUrl: string;
+  description: string;
+  instrumentId: string | null;
+  instrumentName: string | null;
+}
+
+export const fetchAdminSheets = (instrumentId?: string) =>
+  adminRequest<SheetMusicAdmin[]>(`/api/admin/sheets${instrumentId ? `?instrumentId=${instrumentId}` : ""}`);
+
+export const createSheet = (data: Omit<SheetMusicAdmin, "id" | "instrumentName">) =>
+  adminRequest<SheetMusicAdmin>("/api/admin/sheets", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateSheet = (id: string, data: Omit<SheetMusicAdmin, "id" | "instrumentName">) =>
+  adminRequest<SheetMusicAdmin>(`/api/admin/sheets/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const deleteSheet = (id: string) =>
+  adminRequest<void>(`/api/admin/sheets/${id}`, { method: "DELETE" });
