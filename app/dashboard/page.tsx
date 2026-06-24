@@ -3,7 +3,25 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BookOpen, Award, Flame, Sparkles, LogOut, Zap, Trophy } from "lucide-react";
+import { BookOpen, Award, Flame, Sparkles, LogOut, Zap, Trophy, Star, Crown, Target, Music, Music2, Wind, Waves, Guitar, type LucideIcon } from "lucide-react";
+
+const instrumentIcon: Record<string, LucideIcon> = {
+  "dan-tranh": Music2,
+  "dan-bau":   Waves,
+  "dan-nguyet": Guitar,
+  "sao-truc":  Wind,
+  "dan-ty-ba": Music,
+  "dan-nhi":   Music2,
+};
+
+const achievementIcon: Record<string, LucideIcon> = {
+  bullseye: Target,
+  star:     Star,
+  trophy:   Trophy,
+  fire:     Flame,
+  crown:    Crown,
+  music:    Music,
+};
 import { getSession, clearSession, type AuthUser } from "@/lib/auth";
 import { fetchProgress, fetchAchievements, fetchActivity, type UserProgress, type AchievementsResponse, type ActivityDay } from "@/lib/api";
 
@@ -121,7 +139,7 @@ export default function DashboardPage() {
                       <div key={inst.id} className="px-6 py-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-xl">{inst.emoji}</span>
+                            {(() => { const Icon = instrumentIcon[inst.slug] ?? Music; return <Icon className="w-5 h-5 text-[#52b788]" strokeWidth={1.5} />; })()}
                             <span className="font-medium text-[#0a1f14] text-sm">{inst.name}</span>
                           </div>
                           <span className="text-xs text-zinc-400">
@@ -204,27 +222,37 @@ export default function DashboardPage() {
                 </div>
                 <div className="p-4 space-y-2">
                   {achievements?.unlocked.length ? (
-                    achievements.unlocked.slice(0, 4).map((ach) => (
-                      <div key={ach.id} className="flex items-center gap-3">
-                        <span className="text-xl">{ach.icon}</span>
-                        <div>
-                          <p className="text-sm font-medium text-[#0a1f14]">{ach.name}</p>
-                          <p className="text-xs text-zinc-400">{ach.description}</p>
+                    achievements.unlocked.slice(0, 4).map((ach) => {
+                      const Icon = achievementIcon[ach.icon] ?? Award;
+                      return (
+                        <div key={ach.id} className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-[#52b788]/10 flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-4 h-4 text-[#52b788]" strokeWidth={1.5} />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-[#0a1f14]">{ach.name}</p>
+                            <p className="text-xs text-zinc-400">{ach.description}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <p className="text-zinc-400 text-xs text-center py-3">Chưa có thành tích nào</p>
                   )}
-                  {achievements?.locked.slice(0, 2).map((ach) => (
-                    <div key={ach.id} className="flex items-center gap-3 opacity-40">
-                      <span className="text-xl grayscale">{ach.icon}</span>
-                      <div>
-                        <p className="text-sm font-medium text-zinc-500">{ach.name}</p>
-                        <p className="text-xs text-zinc-400">{ach.description}</p>
+                  {achievements?.locked.slice(0, 2).map((ach) => {
+                    const Icon = achievementIcon[ach.icon] ?? Award;
+                    return (
+                      <div key={ach.id} className="flex items-center gap-3 opacity-40">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-4 h-4 text-zinc-400" strokeWidth={1.5} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-zinc-500">{ach.name}</p>
+                          <p className="text-xs text-zinc-400">{ach.description}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
