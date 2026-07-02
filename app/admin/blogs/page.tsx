@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, X, Check, Newspaper, Eye, EyeOff } from "lucide-react";
+import { useRef } from "react";
+import { Plus, Pencil, Trash2, X, Check, Newspaper, Eye, EyeOff, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   fetchAdminBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost,
-  type BlogPostAdmin,
+  uploadImage, type BlogPostAdmin,
 } from "@/lib/admin-api";
 
 type FormData = Omit<BlogPostAdmin, "id" | "publishedAt" | "createdAt" | "updatedAt">;
@@ -35,6 +36,8 @@ export default function BlogsPage() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"basic" | "content">("basic");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchAdminBlogPosts()
@@ -42,6 +45,22 @@ export default function BlogsPage() {
       .catch(() => toast.error("Không thể tải danh sách bài viết"))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file, "blog");
+      setForm((f) => ({ ...f, coverImageUrl: url }));
+      toast.success("Upload ảnh thành công");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Lỗi upload ảnh");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const openCreate = () => {
     setEditId(null);
@@ -231,7 +250,53 @@ export default function BlogsPage() {
                   {field("Tiêu đề *", "title", "Tiêu đề bài viết")}
                   {field("Slug *", "slug", "tieu-de-bai-viet")}
                   {field("Tóm tắt", "summary", "Mô tả ngắn về bài viết")}
-                  {field("Ảnh bìa (URL)", "coverImageUrl", "https://...")}
+                  <div>
+                    <label className="text-xs font-medium text-zinc-500 block mb-1">Ảnh bìa</label>
+                    {form.coverImageUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={form.coverImageUrl}
+                        alt="preview"
+                        className="w-full h-40 object-cover rounded-xl mb-2 border border-zinc-200"
+                      />
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        value={form.coverImageUrl ?? ""}
+                        onChange={(e) => setForm((f) => ({ ...f, coverImageUrl: e.target.value }))}
+                        placeholder="https://... hoặc tải ảnh lên"
+                        className="text-sm border border-zinc-200 rounded-xl px-3 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-[#52b788]/30"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="flex items-center gap-1.5 text-sm font-medium text-white px-3 py-2 rounded-xl disabled:opacity-50 flex-shrink-0"
+                        style={{ background: "linear-gradient(135deg,#52b788,#2d6a4f)" }}
+                      >
+                        {uploading ? (
+                          <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Upload className="w-4 h-4" />
+                        )}
+                        {uploading ? "Đang tải..." : "Tải lên"}
+                      </button>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleUpload}
+                    />
+                    {!form.coverImageUrl && (
+                      <div className="mt-2 border-2 border-dashed border-zinc-200 rounded-xl h-28 flex flex-col items-center justify-center gap-1 text-zinc-400 cursor-pointer hover:border-[#52b788]/50 transition-colors"
+                        onClick={() => fileInputRef.current?.click()}>
+                        <ImageIcon className="w-6 h-6" strokeWidth={1.5} />
+                        <span className="text-xs">Nhấn để chọn ảnh</span>
+                      </div>
+                    )}
+                  </div>
                   {field("Danh mục", "category", "tips, news, tutorial...")}
                   {field("Tác giả", "authorName", "Tên tác giả")}
                   <div>

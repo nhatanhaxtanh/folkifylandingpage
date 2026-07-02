@@ -2,6 +2,21 @@ import { getAccessToken } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
+export async function uploadImage(file: File, folder = "uploads"): Promise<string> {
+  const token = getAccessToken();
+  const form = new FormData();
+  form.append("file", file);
+  form.append("folder", folder);
+  const res = await fetch(`${API_URL}/api/admin/upload`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message ?? "Lỗi upload ảnh");
+  return (json.result as { url: string }).url;
+}
+
 async function adminRequest<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getAccessToken();
   const res = await fetch(`${API_URL}${path}`, {
