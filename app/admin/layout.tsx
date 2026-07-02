@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, Music, BookOpen, Award, LogOut, Shield, Menu, X, Music2, FileMusic } from "lucide-react";
+import { LayoutDashboard, Users, Music, BookOpen, Award, LogOut, Shield, Menu, X, Music2, FileMusic, Newspaper } from "lucide-react";
 import { getSession, clearSession } from "@/lib/auth";
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { label: "Bài hát", href: "/admin/songs", icon: Music2 },
   { label: "Sheet nhạc", href: "/admin/sheets", icon: FileMusic },
   { label: "Thành tích", href: "/admin/achievements", icon: Award },
+  { label: "Blog", href: "/admin/blogs", icon: Newspaper },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -2,6 +2,32 @@ import { getAccessToken } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
+async function publicGet<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`);
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message ?? "Lỗi server");
+  return json.result as T;
+}
+
+export interface BlogPostSummary {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverImageUrl: string;
+  category: string;
+  authorName: string;
+  publishedAt: string | null;
+}
+
+export interface BlogPost extends BlogPostSummary {
+  content: string;
+  updatedAt: string;
+}
+
+export const fetchBlogPosts = () => publicGet<BlogPostSummary[]>("/api/blog");
+export const fetchBlogPost = (slug: string) => publicGet<BlogPost>(`/api/blog/${slug}`);
+
 async function get<T>(path: string): Promise<T> {
   const token = getAccessToken();
   const res = await fetch(`${API_URL}${path}`, {

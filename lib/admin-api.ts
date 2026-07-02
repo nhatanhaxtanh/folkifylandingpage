@@ -185,3 +185,38 @@ export const updateSheet = (id: string, data: Omit<SheetMusicAdmin, "id" | "inst
 
 export const deleteSheet = (id: string) =>
   adminRequest<void>(`/api/admin/sheets/${id}`, { method: "DELETE" });
+
+// ── Blog ───────────────────────────────────────────────────────────────────
+
+export interface BlogPostAdmin {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  content: string;
+  coverImageUrl: string;
+  category: string;
+  authorName: string;
+  published: boolean;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const fetchAdminBlogPosts = () =>
+  adminRequest<BlogPostAdmin[]>("/api/admin/blog");
+
+export const createBlogPost = (data: Omit<BlogPostAdmin, "id" | "publishedAt" | "createdAt" | "updatedAt">) =>
+  adminRequest<BlogPostAdmin>("/api/admin/blog", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+export const updateBlogPost = (id: string, data: Omit<BlogPostAdmin, "id" | "publishedAt" | "createdAt" | "updatedAt">) =>
+  adminRequest<BlogPostAdmin>(`/api/admin/blog/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const deleteBlogPost = (id: string) =>
+  adminRequest<void>(`/api/admin/blog/${id}`, { method: "DELETE" });

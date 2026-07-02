@@ -7,6 +7,7 @@ import { getSession, clearSession, type AuthUser } from "@/lib/auth";
 const navLinks = [
   { label: "Tính năng", href: "#features" },
   { label: "Nhạc cụ", href: "#instruments" },
+  { label: "Blog", href: "/blog" },
   { label: "Giá cả", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
