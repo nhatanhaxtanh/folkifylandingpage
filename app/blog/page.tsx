@@ -25,7 +25,7 @@ function BlogCard({ post }: { post: BlogPostSummary }) {
       className="group flex flex-col bg-white/5 hover:bg-white/[0.08] border border-white/10 hover:border-[#52b788]/40 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/30"
     >
       {/* Cover image */}
-      <div className="aspect-[16/9] overflow-hidden bg-white/5 flex-shrink-0">
+      <div className="aspect-[4/3] overflow-hidden bg-white/5 flex-shrink-0">
         {post.coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
