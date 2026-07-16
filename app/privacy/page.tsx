@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main>
+    <main className="bg-[#0a0a0a] min-h-screen">
       <Navbar />
       <div className="max-w-3xl mx-auto px-6 py-20">
         <h1 className="text-4xl font-bold text-white mb-2">Chính sách bảo mật</h1>
