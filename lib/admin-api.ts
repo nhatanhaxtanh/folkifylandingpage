@@ -55,17 +55,7 @@ export interface AdminUser {
 export const fetchAdminStats = () => adminRequest<AdminStats>("/api/admin/stats");
 export const fetchAdminUsers = () => adminRequest<AdminUser[]>("/api/admin/users");
 
-export const updateUserPlan = (id: string, plan: string) =>
-  adminRequest<AdminUser>(`/api/admin/users/${id}/plan`, {
-    method: "PATCH",
-    body: JSON.stringify({ plan }),
-  });
-
-export const updateUserRole = (id: string, role: string) =>
-  adminRequest<AdminUser>(`/api/admin/users/${id}/role`, {
-    method: "PATCH",
-    body: JSON.stringify({ role }),
-  });
+// Gói và role chỉ theo dõi trên trang admin — không cho cập nhật.
 
 export const deleteUser = (id: string) =>
   adminRequest<void>(`/api/admin/users/${id}`, { method: "DELETE" });

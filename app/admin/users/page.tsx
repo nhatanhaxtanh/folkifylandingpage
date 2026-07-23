@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { fetchAdminUsers, updateUserPlan, updateUserRole, deleteUser, type AdminUser } from "@/lib/admin-api";
+import { fetchAdminUsers, deleteUser, type AdminUser } from "@/lib/admin-api";
 
 const PLAN_LABELS: Record<string, string> = { FREE: "Free", BASIC: "Basic", PRO: "Pro" };
 const PLAN_COLORS: Record<string, string> = {
@@ -28,32 +28,6 @@ export default function AdminUsersPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
-
-  const handlePlanChange = async (id: string, plan: string, name: string) => {
-    setUpdatingId(id);
-    try {
-      const updated = await updateUserPlan(id, plan);
-      setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
-      toast.success(`Đã đổi gói của ${name} sang ${PLAN_LABELS[plan] ?? plan}`);
-    } catch {
-      toast.error("Cập nhật gói thất bại");
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const handleRoleChange = async (id: string, role: string, name: string) => {
-    setUpdatingId(id);
-    try {
-      const updated = await updateUserRole(id, role);
-      setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
-      toast.success(`Đã đổi role của ${name} sang ${role}`);
-    } catch {
-      toast.error("Cập nhật role thất bại");
-    } finally {
-      setUpdatingId(null);
-    }
-  };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Bạn có chắc muốn xóa tài khoản "${name}"? Hành động này không thể hoàn tác.`)) return;
@@ -122,39 +96,14 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="relative inline-flex items-center gap-1">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${PLAN_COLORS[user.plan] ?? "bg-zinc-100 text-zinc-500"}`}>
-                          {PLAN_LABELS[user.plan] ?? user.plan}
-                        </span>
-                        <select
-                          value={user.plan}
-                          disabled={updatingId === user.id}
-                          onChange={(e) => handlePlanChange(user.id, e.target.value, user.name)}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full"
-                        >
-                          <option value="FREE">Free</option>
-                          <option value="BASIC">Basic</option>
-                          <option value="PRO">Pro</option>
-                        </select>
-                        <ChevronDown className="w-3 h-3 text-zinc-400" />
-                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${PLAN_COLORS[user.plan] ?? "bg-zinc-100 text-zinc-500"}`}>
+                        {PLAN_LABELS[user.plan] ?? user.plan}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="relative inline-flex items-center gap-1">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[user.role] ?? "bg-zinc-100 text-zinc-500"}`}>
-                          {user.role}
-                        </span>
-                        <select
-                          value={user.role}
-                          disabled={updatingId === user.id}
-                          onChange={(e) => handleRoleChange(user.id, e.target.value, user.name)}
-                          className="absolute inset-0 opacity-0 cursor-pointer w-full"
-                        >
-                          <option value="USER">USER</option>
-                          <option value="ADMIN">ADMIN</option>
-                        </select>
-                        <ChevronDown className="w-3 h-3 text-zinc-400" />
-                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[user.role] ?? "bg-zinc-100 text-zinc-500"}`}>
+                        {user.role}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-zinc-400 text-xs">
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "—"}
