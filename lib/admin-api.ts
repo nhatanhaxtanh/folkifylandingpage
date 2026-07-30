@@ -1,15 +1,13 @@
-import { getAccessToken } from "./auth";
+import { authFetch } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export async function uploadImage(file: File, folder = "uploads"): Promise<string> {
-  const token = getAccessToken();
   const form = new FormData();
   form.append("file", file);
   form.append("folder", folder);
-  const res = await fetch(`${API_URL}/api/admin/upload`, {
+  const res = await authFetch(`${API_URL}/api/admin/upload`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
   const json = await res.json();
@@ -18,12 +16,10 @@ export async function uploadImage(file: File, folder = "uploads"): Promise<strin
 }
 
 async function adminRequest<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = getAccessToken();
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await authFetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
       ...options?.headers,
     },
   });

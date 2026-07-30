@@ -54,8 +54,67 @@ export function getAccessToken(): string | null {
   return localStorage.getItem("accessToken");
 }
 
+export function getRefreshToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("refreshToken");
+}
+
 export function clearSession(): void {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("user");
+}
+
+// Gọi refresh-token để lấy cặp token mới. Gom nhiều lời gọi đồng thời vào
+// cùng một request để tránh refresh trùng lặp khi nhiều fetch cùng gặp 401.
+let refreshPromise: Promise<string | null> | null = null;
+
+export function refreshSession(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return null;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/refresh-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!res.ok) {
+        clearSession();
+        return null;
+      }
+      const json = await res.json();
+      const tokens = json.result as AuthTokens;
+      saveSession(tokens);
+      return tokens.accessToken;
+    } catch {
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+}
+
+// Fetch có gắn Bearer token; nếu gặp 401 thì tự refresh và thử lại một lần.
+export async function authFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const withAuth = (token: string | null): RequestInit => ({
+    ...init,
+    headers: {
+      ...init.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  let res = await fetch(input, withAuth(getAccessToken()));
+  if (res.status === 401) {
+    const newToken = await refreshSession();
+    if (newToken) {
+      res = await fetch(input, withAuth(newToken));
+    }
+  }
+  return res;
 }

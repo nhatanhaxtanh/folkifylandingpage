@@ -1,4 +1,4 @@
-import { getAccessToken } from "./auth";
+import { authFetch } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
@@ -29,10 +29,7 @@ export const fetchBlogPosts = () => publicGet<BlogPostSummary[]>("/api/blog");
 export const fetchBlogPost = (slug: string) => publicGet<BlogPost>(`/api/blog/${slug}`);
 
 async function get<T>(path: string): Promise<T> {
-  const token = getAccessToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await authFetch(`${API_URL}${path}`);
   const json = await res.json();
   if (!res.ok) throw new Error(json.message ?? "Lỗi server");
   return json.result as T;
