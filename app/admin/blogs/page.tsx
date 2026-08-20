@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { Plus, Pencil, Trash2, X, Check, Newspaper, Eye, EyeOff, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import BlogWeeklyStats from "./BlogWeeklyStats";
 import {
   fetchAdminBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost,
   uploadImage, type BlogPostAdmin,
@@ -151,6 +152,8 @@ export default function BlogsPage() {
           Thêm bài viết
         </button>
       </div>
+
+      <BlogWeeklyStats posts={posts} />
 
       <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
