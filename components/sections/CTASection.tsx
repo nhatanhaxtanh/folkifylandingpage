@@ -5,6 +5,7 @@ import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Music } from "lucide-react";
+import { trackAppStoreCtaClick } from "@/lib/analytics";
 
 export default function CTASection() {
   const ref = useRef(null);
@@ -55,6 +56,7 @@ export default function CTASection() {
             </Button>
             <a
               href="#"
+              onClick={() => trackAppStoreCtaClick("cta_section")}
               className="flex items-center gap-3 bg-black hover:bg-zinc-900 text-white rounded-2xl px-5 h-14 transition-colors border border-white/10"
             >
               <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white flex-shrink-0" xmlns="http://www.w3.org/2000/svg">

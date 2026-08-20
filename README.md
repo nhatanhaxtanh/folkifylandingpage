@@ -16,6 +16,15 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Biến môi trường
+
+Tạo file `.env.local` ở thư mục gốc:
+
+| Biến | Bắt buộc | Mô tả |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | Có | URL backend Spring Boot. Mặc định `http://localhost:8080`. |
+| `NEXT_PUBLIC_GA_ID` | Không | Measurement ID của Google Analytics 4, dạng `G-XXXXXXXXXX`. Bỏ trống thì không nạp gtag — tiện khi chạy local để không làm bẩn số liệu. |
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

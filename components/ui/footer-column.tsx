@@ -7,6 +7,7 @@ import {
   Phone,
 } from "lucide-react";
 import Link from "next/link";
+import AppStoreLink from "@/components/ui/app-store-link";
 
 const data = {
   facebookLink: "https://facebook.com/folkify",
@@ -67,7 +68,7 @@ const helpfulLinks = [
   { text: "Hỗ trợ", href: data.help.support },
   { text: "Chính sách bảo mật", href: data.help.privacy },
   { text: "Điều khoản sử dụng", href: data.help.terms },
-  { text: "App Store", href: data.help.appstore, hasIndicator: true },
+  { text: "App Store", href: data.help.appstore, hasIndicator: true, trackAppStore: true },
 ];
 
 const contactInfo = [
@@ -159,16 +160,12 @@ export default function FooterColumn() {
                 Hỗ trợ
               </p>
               <ul className="space-y-3 text-sm">
-                {helpfulLinks.map(({ text, href, hasIndicator }) => (
-                  <li key={text}>
-                    <a
-                      href={href}
-                      className={
-                        hasIndicator
-                          ? "flex items-center gap-1.5"
-                          : "text-[#95d5b2]/60 hover:text-[#95d5b2] transition-colors"
-                      }
-                    >
+                {helpfulLinks.map(({ text, href, hasIndicator, trackAppStore }) => {
+                  const linkClass = hasIndicator
+                    ? "flex items-center gap-1.5"
+                    : "text-[#95d5b2]/60 hover:text-[#95d5b2] transition-colors";
+                  const linkContent = (
+                    <>
                       <span className="text-[#95d5b2]/60 hover:text-[#95d5b2] transition-colors">
                         {text}
                       </span>
@@ -178,9 +175,23 @@ export default function FooterColumn() {
                           <span className="relative inline-flex size-2 rounded-full bg-[#52b788]" />
                         </span>
                       )}
-                    </a>
-                  </li>
-                ))}
+                    </>
+                  );
+
+                  return (
+                    <li key={text}>
+                      {trackAppStore ? (
+                        <AppStoreLink href={href} className={linkClass}>
+                          {linkContent}
+                        </AppStoreLink>
+                      ) : (
+                        <a href={href} className={linkClass}>
+                          {linkContent}
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
