@@ -114,13 +114,14 @@ export default function AdminUsersPage() {
 
   // Ước tính theo gói user ĐANG dùng, không phải theo giao dịch thật:
   // gia hạn nhiều lần vẫn chỉ tính một lần, user đã hết hạn thì không còn được tính.
-  const revenue = useMemo(() => {
+  const planStats = useMemo(() => {
     const basic = filtered.filter((u) => u.plan === "BASIC").length;
     const pro = filtered.filter((u) => u.plan === "PRO").length;
     return {
       basic,
       pro,
-      total: basic * PLAN_PRICES.BASIC + pro * PLAN_PRICES.PRO,
+      paidUsers: basic + pro,
+      revenue: basic * PLAN_PRICES.BASIC + pro * PLAN_PRICES.PRO,
     };
   }, [filtered]);
 
@@ -160,12 +161,20 @@ export default function AdminUsersPage() {
         <p className="text-zinc-400 text-sm mt-1">
           {hasFilter ? `${filtered.length} / ${users.length} tài khoản` : `${users.length} tài khoản`}
           <span className="mx-2 text-zinc-200">·</span>
+          Đã mua gói:{" "}
+          <span
+            className="font-semibold text-[#0a1f14]"
+            title={`${planStats.basic} Basic + ${planStats.pro} Pro`}
+          >
+            {planStats.paidUsers} tài khoản
+          </span>
+          <span className="mx-2 text-zinc-200">·</span>
           Doanh thu ước tính:{" "}
           <span
             className="font-semibold text-[#52b788]"
-            title={`${revenue.basic} Basic × 49.000₫ + ${revenue.pro} Pro × 99.000₫`}
+            title={`${planStats.basic} Basic × 49.000₫ + ${planStats.pro} Pro × 99.000₫`}
           >
-            {VND.format(revenue.total)}
+            {VND.format(planStats.revenue)}
           </span>
         </p>
       </div>
