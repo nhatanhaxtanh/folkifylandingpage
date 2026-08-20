@@ -24,42 +24,46 @@ const ANALYTICS_COLUMNS = [
   "Average Engagement Time",
 ] as const;
 
+type DemoRow = Record<(typeof ANALYTICS_COLUMNS)[number], string>;
+
 /**
- * PRNG tất định (mulberry32). Dùng mốc thời gian của tuần làm seed nên mỗi tuần
- * luôn ra đúng một bộ số — không nhảy loạn mỗi lần render hay chuyển trang.
+ * Số liệu demo cố định, xếp từ tuần cũ nhất tới tuần mới nhất.
+ * Cột Blog Posts KHÔNG nằm ở đây — cột đó luôn đếm thật từ database.
  */
-function seededRandom(seed: number) {
-  let t = seed;
-  return () => {
-    t = (t + 0x6d2b79f5) | 0;
-    let x = Math.imul(t ^ (t >>> 15), 1 | t);
-    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
-    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
-  };
-}
+const DEMO_WEEKS: DemoRow[] = [
+  {
+    "Website Sessions": "88",
+    "Blog Pageviews": "126",
+    "App Store CTA Clicks": "14",
+    "Average Engagement Time": "1m 31s",
+  },
+  {
+    "Website Sessions": "116",
+    "Blog Pageviews": "173",
+    "App Store CTA Clicks": "21",
+    "Average Engagement Time": "1m 44s",
+  },
+  {
+    "Website Sessions": "148",
+    "Blog Pageviews": "224",
+    "App Store CTA Clicks": "28",
+    "Average Engagement Time": "2m 02s",
+  },
+  {
+    "Website Sessions": "121",
+    "Blog Pageviews": "181",
+    "App Store CTA Clicks": "23",
+    "Average Engagement Time": "1m 56s",
+  },
+];
 
-function formatEngagement(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s`;
-}
-
-/** Sinh số demo có tương quan hợp lý với nhau thay vì 4 số rời rạc. */
-function demoMetrics(weekStart: number, postCount: number) {
-  const rand = seededRandom(weekStart);
-
-  // Tuần có đăng bài thì kéo thêm traffic một chút.
-  const sessions = Math.round(30 + rand() * 210 + postCount * 15);
-  const pageviews = Math.round(sessions * (1.2 + rand() * 0.9));
-  const ctaClicks = Math.max(1, Math.round(sessions * (0.02 + rand() * 0.06)));
-  const engagementSeconds = Math.round(45 + rand() * 190);
-
-  return {
-    "Website Sessions": sessions.toLocaleString("vi-VN"),
-    "Blog Pageviews": pageviews.toLocaleString("vi-VN"),
-    "App Store CTA Clicks": ctaClicks.toLocaleString("vi-VN"),
-    "Average Engagement Time": formatEngagement(engagementSeconds),
-  } satisfies Record<(typeof ANALYTICS_COLUMNS)[number], string>;
+/**
+ * `weeksAgo` = 0 là tuần hiện tại. Neo phần tử cuối của DEMO_WEEKS vào tuần mới
+ * nhất rồi lùi dần; quá 4 tuần thì lặp lại chu kỳ để bảng không bị trống.
+ */
+function demoMetrics(weeksAgo: number): DemoRow {
+  const offset = weeksAgo % DEMO_WEEKS.length;
+  return DEMO_WEEKS[DEMO_WEEKS.length - 1 - offset];
 }
 
 /** dd/MM — không dùng Intl vì locale vi-VN trả về "29-12", lẫn với dấu nối khoảng tuần. */
@@ -149,10 +153,9 @@ export default function BlogWeeklyStats({ posts }: { posts: BlogPostAdmin[] }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
-                {paged.map((week) => {
-                  const metrics = DEMO_ANALYTICS
-                    ? demoMetrics(week.start.getTime(), week.posts)
-                    : null;
+                {paged.map((week, index) => {
+                  // `weeks` xếp mới nhất trước, nên vị trí trong mảng chính là số tuần lùi về.
+                  const metrics = DEMO_ANALYTICS ? demoMetrics(startIndex + index) : null;
 
                   return (
                     <tr key={week.start.getTime()} className="hover:bg-zinc-50/50 transition-colors">
