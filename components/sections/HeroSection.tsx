@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import PhoneMockup from "@/components/PhoneMockup";
+import AppStoreBadge from "@/components/ui/app-store-badge";
 import { Music } from "lucide-react";
 
 const fadeUp = {
@@ -103,6 +104,7 @@ export default function HeroSection() {
                 <Music className="w-4 h-4 mr-1.5" strokeWidth={2} />
                 Dùng thử miễn phí
               </Button>
+              <AppStoreBadge location="hero" className="h-12 rounded-full px-6" />
               <Button
                 variant="outline"
                 className="border-white/20 text-white hover:bg-white/10 hover:text-white bg-transparent rounded-full px-8 h-12"

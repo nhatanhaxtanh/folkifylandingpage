@@ -4,7 +4,7 @@ import { sendGAEvent } from "@next/third-parties/google";
  * Nơi đặt nút dẫn sang App Store — gửi kèm event để GA4 tách được
  * CTA nào đang thực sự ra click.
  */
-export type AppStoreCtaLocation = "cta_section" | "footer";
+export type AppStoreCtaLocation = "hero" | "cta_section" | "footer";
 
 /**
  * Click vào CTA tải app trên App Store.
