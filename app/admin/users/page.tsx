@@ -148,6 +148,7 @@ export default function AdminUsersPage() {
                 <tr className="border-b border-zinc-50">
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Người dùng</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Gói</th>
+                  <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Ngày mua</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Hết hạn</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Role</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Ngày tạo</th>
@@ -173,6 +174,11 @@ export default function AdminUsersPage() {
                         {PLAN_LABELS[user.plan] ?? user.plan}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-xs text-zinc-400">
+                      {user.lastPurchaseAt
+                        ? new Date(user.lastPurchaseAt).toLocaleDateString("vi-VN")
+                        : <span className="text-zinc-300">—</span>}
+                    </td>
                     <td className="px-6 py-4 text-xs">
                       {renderPlanExpiry(user)}
                     </td>
@@ -197,7 +203,7 @@ export default function AdminUsersPage() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-6 py-10 text-center text-zinc-400 text-sm">
+                    <td colSpan={7} className="px-6 py-10 text-center text-zinc-400 text-sm">
                       Không tìm thấy người dùng nào
                     </td>
                   </tr>

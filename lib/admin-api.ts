@@ -45,6 +45,8 @@ export interface AdminUser {
   email: string;
   role: string;
   plan: string;
+  /** Ngày thanh toán thành công gần nhất. NULL = chưa từng mua. */
+  lastPurchaseAt: string | null;
   /** NULL = không giới hạn (gói tặng tay / tài khoản FREE). */
   planExpiresAt: string | null;
   createdAt: string;
