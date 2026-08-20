@@ -19,6 +19,25 @@ const ROLE_COLORS: Record<string, string> = {
 const SELECT_CLASS =
   "text-sm border border-zinc-200 rounded-xl px-3 py-2 bg-white text-[#0a1f14] focus:outline-none focus:ring-2 focus:ring-[#52b788]/30";
 
+/**
+ * Hạn gói. Gói đã quá hạn vẫn hiện PRO/BASIC cho tới khi PlanExpiryJob bên backend
+ * quét (mỗi 15 phút) nên tô đỏ để phân biệt với gói còn hiệu lực.
+ */
+function renderPlanExpiry(user: AdminUser) {
+  if (user.plan === "FREE") return <span className="text-zinc-300">—</span>;
+  if (!user.planExpiresAt) return <span className="text-zinc-400">Vĩnh viễn</span>;
+
+  const expiry = new Date(user.planExpiresAt);
+  const expired = expiry.getTime() < Date.now();
+
+  return (
+    <span className={expired ? "text-red-500 font-medium" : "text-zinc-400"}>
+      {expiry.toLocaleDateString("vi-VN")}
+      {expired && " (đã hết hạn)"}
+    </span>
+  );
+}
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,6 +148,7 @@ export default function AdminUsersPage() {
                 <tr className="border-b border-zinc-50">
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Người dùng</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Gói</th>
+                  <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Hết hạn</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Role</th>
                   <th className="text-left px-6 py-3 text-zinc-400 font-medium text-xs uppercase tracking-wide">Ngày tạo</th>
                   <th className="px-6 py-3" />
@@ -153,6 +173,9 @@ export default function AdminUsersPage() {
                         {PLAN_LABELS[user.plan] ?? user.plan}
                       </span>
                     </td>
+                    <td className="px-6 py-4 text-xs">
+                      {renderPlanExpiry(user)}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${ROLE_COLORS[user.role] ?? "bg-zinc-100 text-zinc-500"}`}>
                         {user.role}
@@ -174,7 +197,7 @@ export default function AdminUsersPage() {
                 ))}
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-10 text-center text-zinc-400 text-sm">
+                    <td colSpan={6} className="px-6 py-10 text-center text-zinc-400 text-sm">
                       Không tìm thấy người dùng nào
                     </td>
                   </tr>
