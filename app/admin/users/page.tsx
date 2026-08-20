@@ -18,6 +18,15 @@ const ROLE_COLORS: Record<string, string> = {
   ADMIN: "bg-red-50 text-red-500",
 };
 
+/** Giá niêm yết mỗi gói (VND), khớp PAYOS_PRICE_BASIC / PAYOS_PRICE_PRO bên backend. */
+const PLAN_PRICES: Record<string, number> = { FREE: 0, BASIC: 49000, PRO: 99000 };
+
+const VND = new Intl.NumberFormat("vi-VN", {
+  style: "currency",
+  currency: "VND",
+  maximumFractionDigits: 0,
+});
+
 const SELECT_CLASS =
   "text-sm border border-zinc-200 rounded-xl px-3 py-2 bg-white text-[#0a1f14] focus:outline-none focus:ring-2 focus:ring-[#52b788]/30";
 
@@ -103,6 +112,18 @@ export default function AdminUsersPage() {
 
   const hasFilter = Boolean(keyword || filterPlan || filterRole);
 
+  // Ước tính theo gói user ĐANG dùng, không phải theo giao dịch thật:
+  // gia hạn nhiều lần vẫn chỉ tính một lần, user đã hết hạn thì không còn được tính.
+  const revenue = useMemo(() => {
+    const basic = filtered.filter((u) => u.plan === "BASIC").length;
+    const pro = filtered.filter((u) => u.plan === "PRO").length;
+    return {
+      basic,
+      pro,
+      total: basic * PLAN_PRICES.BASIC + pro * PLAN_PRICES.PRO,
+    };
+  }, [filtered]);
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   // Xóa user có thể làm hụt số trang nên phải kẹp lại thay vì tin vào state.
   const currentPage = Math.min(page, totalPages);
@@ -138,6 +159,14 @@ export default function AdminUsersPage() {
         <h1 className="text-2xl font-bold text-[#0a1f14]">Người dùng</h1>
         <p className="text-zinc-400 text-sm mt-1">
           {hasFilter ? `${filtered.length} / ${users.length} tài khoản` : `${users.length} tài khoản`}
+          <span className="mx-2 text-zinc-200">·</span>
+          Doanh thu ước tính:{" "}
+          <span
+            className="font-semibold text-[#52b788]"
+            title={`${revenue.basic} Basic × 49.000₫ + ${revenue.pro} Pro × 99.000₫`}
+          >
+            {VND.format(revenue.total)}
+          </span>
         </p>
       </div>
 
