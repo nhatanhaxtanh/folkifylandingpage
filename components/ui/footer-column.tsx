@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import AppStoreLink from "@/components/ui/app-store-link";
+import { APP_STORE_URL } from "@/lib/app-links";
 
 const data = {
   facebookLink: "https://facebook.com/folkify",
@@ -29,7 +30,7 @@ const data = {
     support: "#",
     privacy: "#",
     terms: "#",
-    appstore: "https://apps.apple.com",
+    appstore: APP_STORE_URL,
   },
   contact: {
     email: "support@folkify.vn",

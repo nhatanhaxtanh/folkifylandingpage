@@ -1,13 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { APP_STORE_URL } from "@/lib/app-links";
 import { trackAppStoreCtaClick, type AppStoreCtaLocation } from "@/lib/analytics";
-
-/**
- * Link tải app trên App Store. Đổi ở đây là đổi mọi nút badge trên landing page.
- * TODO: thay bằng URL thật của app sau khi được duyệt lên App Store.
- */
-export const APP_STORE_URL = "https://apps.apple.com";
 
 /**
  * Badge "Download on the App Store". Mọi lần dùng đều tự bắn event GA4,
