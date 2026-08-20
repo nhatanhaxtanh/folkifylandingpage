@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { fetchAdminUsers, deleteUser, type AdminUser } from "@/lib/admin-api";
 
@@ -16,10 +16,15 @@ const ROLE_COLORS: Record<string, string> = {
   ADMIN: "bg-red-50 text-red-500",
 };
 
+const SELECT_CLASS =
+  "text-sm border border-zinc-200 rounded-xl px-3 py-2 bg-white text-[#0a1f14] focus:outline-none focus:ring-2 focus:ring-[#52b788]/30";
+
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterPlan, setFilterPlan] = useState("");
+  const [filterRole, setFilterRole] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,21 +48,36 @@ export default function AdminUsersPage() {
     }
   };
 
-  const filtered = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const keyword = search.trim().toLowerCase();
+  const filtered = users.filter((u) => {
+    const matchKeyword =
+      !keyword ||
+      u.name.toLowerCase().includes(keyword) ||
+      u.email.toLowerCase().includes(keyword);
+    const matchPlan = !filterPlan || u.plan === filterPlan;
+    const matchRole = !filterRole || u.role === filterRole;
+    return matchKeyword && matchPlan && matchRole;
+  });
+
+  const hasFilter = Boolean(keyword || filterPlan || filterRole);
+
+  const clearFilters = () => {
+    setSearch("");
+    setFilterPlan("");
+    setFilterRole("");
+  };
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-[#0a1f14]">Người dùng</h1>
-        <p className="text-zinc-400 text-sm mt-1">{users.length} tài khoản</p>
+        <p className="text-zinc-400 text-sm mt-1">
+          {hasFilter ? `${filtered.length} / ${users.length} tài khoản` : `${users.length} tài khoản`}
+        </p>
       </div>
 
       <div className="bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-zinc-50 flex items-center justify-between gap-4">
+        <div className="px-6 py-4 border-b border-zinc-50 flex flex-wrap items-center gap-3">
           <input
             type="text"
             placeholder="Tìm theo tên hoặc email..."
@@ -65,6 +85,39 @@ export default function AdminUsersPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="h-9 px-3 rounded-xl border border-zinc-200 text-sm w-72 focus:outline-none focus:border-[#52b788]"
           />
+
+          <select
+            value={filterPlan}
+            onChange={(e) => setFilterPlan(e.target.value)}
+            className={SELECT_CLASS}
+            aria-label="Lọc theo gói"
+          >
+            <option value="">Tất cả gói</option>
+            {Object.entries(PLAN_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className={SELECT_CLASS}
+            aria-label="Lọc theo role"
+          >
+            <option value="">Tất cả role</option>
+            <option value="USER">User</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+
+          {hasFilter && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 text-sm text-zinc-400 hover:text-zinc-600 transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+              Xóa lọc
+            </button>
+          )}
         </div>
 
         {loading ? (
