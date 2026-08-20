@@ -9,13 +9,58 @@ const PAGE_SIZE = 10;
 const TH_CLASS =
   "text-left px-3 py-3 text-xs font-semibold text-zinc-400 uppercase tracking-wide whitespace-nowrap";
 
-/** Các chỉ số cần analytics (GA4 hoặc tracking tự build) — chưa có nguồn dữ liệu. */
-const PENDING_COLUMNS = [
+/**
+ * Số liệu demo cho 4 cột chưa có nguồn thật.
+ *
+ * ĐỔI THÀNH `false` NGAY KHI NỐI ĐƯỢC GA4 DATA API — lúc đó 4 cột quay về "—"
+ * cho tới khi thay bằng số thật, thay vì âm thầm hiển thị số bịa.
+ */
+const DEMO_ANALYTICS = true;
+
+const ANALYTICS_COLUMNS = [
   "Website Sessions",
   "Blog Pageviews",
   "App Store CTA Clicks",
   "Average Engagement Time",
-];
+] as const;
+
+/**
+ * PRNG tất định (mulberry32). Dùng mốc thời gian của tuần làm seed nên mỗi tuần
+ * luôn ra đúng một bộ số — không nhảy loạn mỗi lần render hay chuyển trang.
+ */
+function seededRandom(seed: number) {
+  let t = seed;
+  return () => {
+    t = (t + 0x6d2b79f5) | 0;
+    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function formatEngagement(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return m > 0 ? `${m}m ${String(s).padStart(2, "0")}s` : `${s}s`;
+}
+
+/** Sinh số demo có tương quan hợp lý với nhau thay vì 4 số rời rạc. */
+function demoMetrics(weekStart: number, postCount: number) {
+  const rand = seededRandom(weekStart);
+
+  // Tuần có đăng bài thì kéo thêm traffic một chút.
+  const sessions = Math.round(240 + rand() * 1400 + postCount * 130);
+  const pageviews = Math.round(sessions * (1.3 + rand() * 1.1));
+  const ctaClicks = Math.round(sessions * (0.012 + rand() * 0.045));
+  const engagementSeconds = Math.round(45 + rand() * 190);
+
+  return {
+    "Website Sessions": sessions.toLocaleString("vi-VN"),
+    "Blog Pageviews": pageviews.toLocaleString("vi-VN"),
+    "App Store CTA Clicks": ctaClicks.toLocaleString("vi-VN"),
+    "Average Engagement Time": formatEngagement(engagementSeconds),
+  } satisfies Record<(typeof ANALYTICS_COLUMNS)[number], string>;
+}
 
 /** dd/MM — không dùng Intl vì locale vi-VN trả về "29-12", lẫn với dấu nối khoảng tuần. */
 function dayMonth(date: Date) {
@@ -98,27 +143,40 @@ export default function BlogWeeklyStats({ posts }: { posts: BlogPostAdmin[] }) {
                 <tr className="border-b border-zinc-50">
                   <th className={TH_CLASS}>Week</th>
                   <th className={TH_CLASS}>Blog Posts</th>
-                  {PENDING_COLUMNS.map((label) => (
+                  {ANALYTICS_COLUMNS.map((label) => (
                     <th key={label} className={TH_CLASS}>{label}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-50">
-                {paged.map((week) => (
-                  <tr key={week.start.getTime()} className="hover:bg-zinc-50/50 transition-colors">
-                    <td className="px-3 py-3 text-xs text-zinc-500 whitespace-nowrap tabular-nums">
-                      {weekLabel(week.start)}
-                    </td>
-                    <td className="px-3 py-3 text-sm font-medium text-[#0a1f14] tabular-nums">
-                      {week.posts}
-                    </td>
-                    {PENDING_COLUMNS.map((label) => (
-                      <td key={label} className="px-3 py-3 text-zinc-300 text-xs">
-                        —
+                {paged.map((week) => {
+                  const metrics = DEMO_ANALYTICS
+                    ? demoMetrics(week.start.getTime(), week.posts)
+                    : null;
+
+                  return (
+                    <tr key={week.start.getTime()} className="hover:bg-zinc-50/50 transition-colors">
+                      <td className="px-3 py-3 text-xs text-zinc-500 whitespace-nowrap tabular-nums">
+                        {weekLabel(week.start)}
                       </td>
-                    ))}
-                  </tr>
-                ))}
+                      <td className="px-3 py-3 text-sm font-medium text-[#0a1f14] tabular-nums">
+                        {week.posts}
+                      </td>
+                      {ANALYTICS_COLUMNS.map((label) => (
+                        <td
+                          key={label}
+                          className={
+                            metrics
+                              ? "px-3 py-3 text-xs text-zinc-500 tabular-nums whitespace-nowrap"
+                              : "px-3 py-3 text-zinc-300 text-xs"
+                          }
+                        >
+                          {metrics ? metrics[label] : "—"}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -156,8 +214,19 @@ export default function BlogWeeklyStats({ posts }: { posts: BlogPostAdmin[] }) {
       )}
 
       <p className="px-4 py-2.5 bg-amber-50/60 border-t border-amber-100 text-xs text-amber-700">
-        4 cột bên phải cần Google Analytics hoặc tracking riêng — hiện chưa gắn nên
-        chưa có số liệu.
+        {DEMO_ANALYTICS ? (
+          <>
+            <strong className="font-semibold">Số liệu demo.</strong> 4 cột bên phải là số
+            sinh ngẫu nhiên để xem trước giao diện — <strong className="font-semibold">không
+            phải dữ liệu thật</strong>. Chỉ cột Blog Posts lấy từ database. Sẽ thay bằng số
+            thật khi nối được GA4 Data API.
+          </>
+        ) : (
+          <>
+            4 cột bên phải cần Google Analytics hoặc tracking riêng — hiện chưa gắn nên chưa
+            có số liệu.
+          </>
+        )}
       </p>
     </div>
   );
