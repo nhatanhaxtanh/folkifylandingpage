@@ -7,6 +7,7 @@ import {
   type AdminStats, type BlogPostAdmin,
 } from "@/lib/admin-api";
 import BlogWeeklyStats from "./BlogWeeklyStats";
+import FunnelStats from "./FunnelStats";
 
 export default function AdminOverviewPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -59,6 +60,7 @@ export default function AdminOverviewPage() {
           </div>
 
           <BlogWeeklyStats posts={posts} />
+          <FunnelStats />
         </>
       )}
     </div>
