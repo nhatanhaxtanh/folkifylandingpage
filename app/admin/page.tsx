@@ -2,15 +2,24 @@
 
 import { useEffect, useState } from "react";
 import { Users, Crown, Zap, UserCheck, TrendingUp, Shield } from "lucide-react";
-import { fetchAdminStats, type AdminStats } from "@/lib/admin-api";
+import {
+  fetchAdminStats, fetchAdminBlogPosts,
+  type AdminStats, type BlogPostAdmin,
+} from "@/lib/admin-api";
+import BlogWeeklyStats from "./BlogWeeklyStats";
 
 export default function AdminOverviewPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [posts, setPosts] = useState<BlogPostAdmin[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAdminStats()
-      .then(setStats)
+    // Bảng thống kê theo tuần cần danh sách bài viết để đếm cột Blog Posts.
+    Promise.all([fetchAdminStats(), fetchAdminBlogPosts()])
+      .then(([adminStats, blogPosts]) => {
+        setStats(adminStats);
+        setPosts(blogPosts);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -36,17 +45,21 @@ export default function AdminOverviewPage() {
       {loading ? (
         <div className="flex items-center justify-center h-48 text-zinc-400 text-sm">Đang tải...</div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {statCards.map((s) => (
-            <div key={s.label} className="bg-white rounded-2xl p-5 border border-zinc-100 shadow-sm">
-              <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-4`}>
-                <s.icon className={`w-5 h-5 ${s.color}`} strokeWidth={1.5} />
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+            {statCards.map((s) => (
+              <div key={s.label} className="bg-white rounded-2xl p-5 border border-zinc-100 shadow-sm">
+                <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center mb-4`}>
+                  <s.icon className={`w-5 h-5 ${s.color}`} strokeWidth={1.5} />
+                </div>
+                <p className="text-3xl font-bold text-[#0a1f14]">{s.value}</p>
+                <p className="text-zinc-400 text-sm mt-1">{s.label}</p>
               </div>
-              <p className="text-3xl font-bold text-[#0a1f14]">{s.value}</p>
-              <p className="text-zinc-400 text-sm mt-1">{s.label}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+
+          <BlogWeeklyStats posts={posts} />
+        </>
       )}
     </div>
   );

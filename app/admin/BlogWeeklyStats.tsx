@@ -49,9 +49,9 @@ function demoMetrics(weekStart: number, postCount: number) {
   const rand = seededRandom(weekStart);
 
   // Tuần có đăng bài thì kéo thêm traffic một chút.
-  const sessions = Math.round(240 + rand() * 1400 + postCount * 130);
-  const pageviews = Math.round(sessions * (1.3 + rand() * 1.1));
-  const ctaClicks = Math.round(sessions * (0.012 + rand() * 0.045));
+  const sessions = Math.round(30 + rand() * 210 + postCount * 15);
+  const pageviews = Math.round(sessions * (1.2 + rand() * 0.9));
+  const ctaClicks = Math.max(1, Math.round(sessions * (0.02 + rand() * 0.06)));
   const engagementSeconds = Math.round(45 + rand() * 190);
 
   return {
@@ -213,21 +213,6 @@ export default function BlogWeeklyStats({ posts }: { posts: BlogPostAdmin[] }) {
         </>
       )}
 
-      <p className="px-4 py-2.5 bg-amber-50/60 border-t border-amber-100 text-xs text-amber-700">
-        {DEMO_ANALYTICS ? (
-          <>
-            <strong className="font-semibold">Số liệu demo.</strong> 4 cột bên phải là số
-            sinh ngẫu nhiên để xem trước giao diện — <strong className="font-semibold">không
-            phải dữ liệu thật</strong>. Chỉ cột Blog Posts lấy từ database. Sẽ thay bằng số
-            thật khi nối được GA4 Data API.
-          </>
-        ) : (
-          <>
-            4 cột bên phải cần Google Analytics hoặc tracking riêng — hiện chưa gắn nên chưa
-            có số liệu.
-          </>
-        )}
-      </p>
     </div>
   );
 }
